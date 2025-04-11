@@ -1,12 +1,18 @@
-import { createStore } from "redux";
+import { combineReducers, createStore } from "redux";
 
-const initialState = {
+const initialStateAccount = {
     balance: 0,
     loan: 0,
     loanPurpose: "",
 };
 
-function reducer(state = initialState, action) {
+const initialStateCustomer = {
+    fullName: "",
+    natinalID: "",
+    createdAt: "",
+};
+
+function accountReducer(state = initialStateAccount, action) {
     switch (action.type) {
         case "account/deposit":
             return {
@@ -22,7 +28,9 @@ function reducer(state = initialState, action) {
             if (state.loan > 0) return state;
             return {
                 ...state,
-                loan: action.payload,
+                loan: action.payload.amount,
+                loanPurpose: action.payload.purpose,
+                balance: state.balance + action.payload.amount,
             };
         case "account/payLoan":
             return {
@@ -36,9 +44,68 @@ function reducer(state = initialState, action) {
     }
 }
 
+function customerReducer(state = initialStateCustomer, action) {
+    switch (action.type) {
+        case "customer/createCustomer":
+            return {
+                ...state,
+                fullName: action.payload.fullName,
+                natinalID: action.payload.nationalID,
+                createdAt: action.payload.createdAt,
+            };
+        case "customer/updateCustomer":
+            return {
+                ...state,
+                fullName: action.payload,
+            };
+        default:
+            return state;
+    }
+}
 
-const store = createStore(reducer);
+const rootReducer = combineReducers({
+    account: accountReducer,
+    customer: customerReducer
+})
 
-store.dispatch({type: "account/deposit", payload: 500})
+const store = createStore(rootReducer);
 
-console.log("hello")
+// store.dispatch({ type: "account/deposit", payload: 500 });
+
+function deposit(amount) {
+    return { type: "account/deposit", payload: amount };
+}
+function withdraw(amount) {
+    return { type: "account/withdraw", payload: amount };
+}
+function requestLoan(amount, purpose) {
+    return {
+        type: "account/requestLoan",
+        payload: { amount, purpose },
+    };
+}
+function payLoan() {
+    return { type: "account/payLoan" };
+}
+
+
+
+function createCustomer(fullName, nationalID) {
+    return {
+        type: "customer/createCustomer",
+        payload: { fullName, nationalID, createdAt: new Date().toISOString() },
+    };
+}
+
+function updateName(fullName) {
+    return {
+        type: "customer/updateCutomer",
+        payload: fullName,
+    };
+}
+
+
+store.dispatch(deposit(500))
+store.dispatch(deposit(300))
+store.dispatch(createCustomer('Alabi Raphael', 22344434))
+console.log(store.getState())
